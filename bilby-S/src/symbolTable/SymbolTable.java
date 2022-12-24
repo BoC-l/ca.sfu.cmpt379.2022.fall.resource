@@ -1,45 +1,11 @@
 package symbolTable;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 import logging.BilbyLogger;
-
 import tokens.Token;
 
-public class SymbolTable {
-	private Map<String, Binding> table;
-	
-	public SymbolTable() {
-		table = new HashMap<String, Binding>();
-	}
-	
-	
-	////////////////////////////////////////////////////////////////
-	// installation and lookup of identifiers
-
-	public Binding install(String identifier, Binding binding) {
-		table.put(identifier, binding);
-		return binding;
-	}
-	public Binding lookup(String identifier) {
-		return table.getOrDefault(identifier, Binding.nullInstance());
-	}
-	
-	///////////////////////////////////////////////////////////////////////
-	// Map delegates	
-	
-	public boolean containsKey(String identifier) {
-		return table.containsKey(identifier);
-	}
-	public Set<String> keySet() {
-		return table.keySet();
-	}
-	public Collection<Binding> values() {
-		return table.values();
-	}
+public class SymbolTable extends HashMap<String, Binding> {	
 	
 	///////////////////////////////////////////////////////////////////////
 	//error reporting
@@ -60,7 +26,7 @@ public class SymbolTable {
 
 	public String toString() {
 		StringBuffer result = new StringBuffer("    symbol table: \n");
-		table.entrySet().forEach((entry) -> {
+		this.entrySet().forEach((entry) -> {
 			result.append("        " + entry + "\n");
 		});
 		return result.toString();

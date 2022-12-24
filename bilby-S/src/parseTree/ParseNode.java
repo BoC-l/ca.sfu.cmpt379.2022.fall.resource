@@ -85,7 +85,7 @@ public class ParseNode implements Locator {
 			return Binding.nullInstance();
 		}
 		SymbolTable symbolTable = scope.getSymbolTable();
-		return symbolTable.lookup(identifier);
+		return symbolTable.getOrDefault(identifier, Binding.nullInstance());
 	}
 	
 ////////////////////////////////////////////////////////////////////////////////////
