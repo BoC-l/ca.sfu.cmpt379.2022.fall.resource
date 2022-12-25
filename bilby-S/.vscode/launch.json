@@ -6,7 +6,7 @@
     "compounds": [
         {
             "name": "compile/run",
-            "configurations": ["compile", "_run"]
+            "configurations": ["_compile", "_run"]
         }
     ],
     "configurations": [
@@ -28,13 +28,21 @@
             "args": ["${file}"]
         },
         {
+            "name": "_compile",
+            "type": "java",
+            "request": "launch",
+            "mainClass": "applications.BilbyCompiler",
+            "projectName": "bilby-S",
+            "args": ["${file}", "${fileDirname}"]
+        },
+        {
             "name": "_run",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/emulator.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["${workspaceFolder}/output/${fileBasenameNoExtension}.asm"]
+            "args": ["${fileDirname}/${fileBasenameNoExtension}.asm"]
         }
     ]
 }

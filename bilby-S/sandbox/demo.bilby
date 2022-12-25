@@ -1,0 +1,4 @@
+main {
+    imm a := 42;
+    print a $n;
+}
