@@ -1,6 +1,5 @@
 package symbolTable;
 
-import inputHandler.TextLocation;
 import logging.BilbyLogger;
 import parseTree.nodeTypes.IdentifierNode;
 import semanticAnalyzer.types.Type;
@@ -67,14 +66,14 @@ public class Scope {
 		symbolTable.errorIfAlreadyDefined(token);
 
 		String lexeme = token.getLexeme();
-		Binding binding = allocateNewBinding(type, token.getLocation(), lexeme);	
+		Binding binding = allocateNewBinding(type, lexeme);	
 		symbolTable.put(lexeme, binding);
 
 		return binding;
 	}
-	private Binding allocateNewBinding(Type type, TextLocation textLocation, String lexeme) {
+	private Binding allocateNewBinding(Type type, String lexeme) {
 		MemoryLocation memoryLocation = allocator.allocate(type.getSize());
-		return new Binding(type, textLocation, memoryLocation, lexeme);
+		return new Binding(type, memoryLocation, lexeme);
 	}
 	
 ///////////////////////////////////////////////////////////////////////
