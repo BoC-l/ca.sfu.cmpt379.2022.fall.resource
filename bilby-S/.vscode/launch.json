@@ -11,6 +11,22 @@
     ],
     "configurations": [
         {
+            "name": "tokens",
+            "type": "java",
+            "request": "launch",
+            "mainClass": "applications.BilbyTokenPrinter",
+            "projectName": "bilby-S",
+            "args": ["${file}"]
+        },
+        {
+            "name": "semantic",
+            "type": "java",
+            "request": "launch",
+            "mainClass": "applications.BilbySemanticChecker",
+            "projectName": "bilby-S",
+            "args": ["${file}"]
+        },
+        {
             "name": "compile",
             "type": "java",
             "request": "launch",
