@@ -402,14 +402,14 @@ public class Parser {
 		return startsAdditiveExpression(token);
 	}
 
-	// additiveExpression -> multiplicativeExpression [+ multiplicativeExpression]*  (left-assoc)
+	// additiveExpression -> multiplicativeExpression [(+|-) multiplicativeExpression]*  (left-assoc)
 	private ParseNode parseAdditiveExpression() {
 		if(!startsAdditiveExpression(nowReading)) {
 			return syntaxErrorNode("additiveExpression");
 		}
 		
 		ParseNode left = parseMultiplicativeExpression();
-		while(nowReading.isLextant(Punctuator.ADD)) {
+		while(nowReading.isLextant(Punctuator.ADD, Punctuator.SUBTRACT)) {
 			Token additiveToken = nowReading;
 			readToken();
 			ParseNode right = parseMultiplicativeExpression();

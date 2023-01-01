@@ -356,7 +356,7 @@ public class ASMCodeGenerator {
 		public void visitLeave(OperatorNode node) {
 			Lextant operator = node.getOperator();
 			
-			if(operator == Punctuator.SUBTRACT) {
+			if(operator == Punctuator.SUBTRACT && node.nChildren() == 1) {
 				visitUnaryOperatorNode(node);
 			}
 			else if(operator == Punctuator.GREATER) {
@@ -407,7 +407,7 @@ public class ASMCodeGenerator {
 			
 			code.append(arg1);
 			
-			ASMOpcode opcode = opcodeForOperator(node.getOperator());
+			ASMOpcode opcode = opcodeForOperator(node);
 			code.add(opcode);							// type-dependent! (opcode is different for floats and for ints)
 		}
 		private void visitNormalBinaryOperatorNode(OperatorNode node) {
@@ -418,15 +418,17 @@ public class ASMCodeGenerator {
 			code.append(arg1);
 			code.append(arg2);
 			
-			ASMOpcode opcode = opcodeForOperator(node.getOperator());
+			ASMOpcode opcode = opcodeForOperator(node);
 			code.add(opcode);							// type-dependent! (opcode is different for floats and for ints)
 		}
-		private ASMOpcode opcodeForOperator(Lextant lextant) {
+		private ASMOpcode opcodeForOperator(OperatorNode node) {
+            Lextant lextant = node.getOperator();
 			assert(lextant instanceof Punctuator);
 			Punctuator punctuator = (Punctuator)lextant;
+            int nOperators = node.nChildren();
 			switch(punctuator) {
 			case ADD: 	   		return Add;				// type-dependent!
-			case SUBTRACT:		return Negate;			// (unary subtract only) type-dependent!
+			case SUBTRACT:		return nOperators == 1 ? Negate : Subtract; // (unary subtract only) type-dependent!
 			case MULTIPLY: 		return Multiply;		// type-dependent!
 			default:
 				assert false : "unimplemented operator in opcodeForOperator";
