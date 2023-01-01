@@ -9,6 +9,7 @@ import asmCodeGenerator.runtime.RunTime;
 import lexicalAnalyzer.Lextant;
 import lexicalAnalyzer.Punctuator;
 import parseTree.*;
+import parseTree.nodeTypes.AssignmentStatementNode;
 import parseTree.nodeTypes.BlockStatementNode;
 import parseTree.nodeTypes.BooleanConstantNode;
 import parseTree.nodeTypes.CallStatementNode;
@@ -340,6 +341,15 @@ public class ASMCodeGenerator {
 			return null;
 		}
 
+        @Override
+        public void visitLeave(AssignmentStatementNode node) {
+            newVoidCode(node);
+            ASMCodeFragment lvalue = removeAddressCode(node.child(0));
+            ASMCodeFragment rvalue = removeValueCode(node.child(1));
+            code.append(lvalue);
+            code.append(rvalue);
+            code.add(opcodeForStore(node.child(0).getType()));
+        }
 
 		///////////////////////////////////////////////////////////////////////////
 		// expressions

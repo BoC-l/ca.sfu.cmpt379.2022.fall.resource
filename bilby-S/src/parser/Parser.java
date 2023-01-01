@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import logging.BilbyLogger;
 import parseTree.*;
+import parseTree.nodeTypes.AssignmentStatementNode;
 import parseTree.nodeTypes.BlockStatementNode;
 import parseTree.nodeTypes.BooleanConstantNode;
 import parseTree.nodeTypes.CallStatementNode;
@@ -153,7 +154,7 @@ public class Parser {
 	///////////////////////////////////////////////////////////
 	// statements
 	
-	// statement-> declaration | printStmt | callStatement | ifStmt | returnStatement
+	// statement-> declaration | printStmt | callStatement | ifStmt | returnStatement | assignmentStatement
 	private ParseNode parseStatement() {
 		if(!startsStatement(nowReading)) {
 			return syntaxErrorNode("statement");
@@ -173,8 +174,24 @@ public class Parser {
         if(startsReturnStatement(nowReading)) {
             return parseReturnStatement();
         }
+        if(startsAssignmentStatement(nowReading)) {
+            return parseAssignmentStatement();
+        }
 		return syntaxErrorNode("statement");
 	}
+    // assignmentStatement -> identifier := expression ;
+    private ParseNode parseAssignmentStatement() {
+        assert startsAssignmentStatement(nowReading);
+        Token token = nowReading;
+        ParseNode identifier = parseIdentifier();
+        expect(Punctuator.ASSIGN);
+        ParseNode expression = parseExpression();
+        expect(Punctuator.TERMINATOR);
+        return AssignmentStatementNode.withChildren(token, identifier, expression);
+    }
+    private boolean startsAssignmentStatement(Token token) {
+        return startsIdentifier(token);
+    }
     // returnStatement -> RETURN expression? ;
     private ParseNode parseReturnStatement() {
         assert startsReturnStatement(nowReading);
@@ -238,7 +255,8 @@ public class Parser {
 			   startsDeclaration(token) ||
                startsCallStatement(token) ||
                startsIfStatement(token) ||
-               startsReturnStatement(token);
+               startsReturnStatement(token) ||
+               startsAssignmentStatement(token);
 	}
 	
 	private boolean startsIfStatement(Token token) {
@@ -336,7 +354,7 @@ public class Parser {
 		return DeclarationNode.withChildren(declarationToken, identifier, initializer);
 	}
 	private boolean startsDeclaration(Token token) {
-		return token.isLextant(Keyword.IMM);
+		return token.isLextant(Keyword.IMM, Keyword.MUT);
 	}
 
 

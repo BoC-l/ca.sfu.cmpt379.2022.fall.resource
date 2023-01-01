@@ -1,0 +1,4 @@
+main {
+    imm value := 0;
+    value := 1;
+}

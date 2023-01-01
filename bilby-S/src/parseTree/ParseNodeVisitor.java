@@ -1,5 +1,6 @@
 package parseTree;
 
+import parseTree.nodeTypes.AssignmentStatementNode;
 import parseTree.nodeTypes.BlockStatementNode;
 import parseTree.nodeTypes.BooleanConstantNode;
 import parseTree.nodeTypes.CallStatementNode;
@@ -67,6 +68,9 @@ public interface ParseNodeVisitor {
 
     void visitEnter(FunctionInvocationNode node);
     void visitLeave(FunctionInvocationNode node);
+
+    void visitEnter(AssignmentStatementNode node);
+    void visitLeave(AssignmentStatementNode node);
 
 	// leaf nodes: visitLeaf only
 	void visit(BooleanConstantNode node);
@@ -192,6 +196,15 @@ public interface ParseNodeVisitor {
         }
         @Override
         public void visitLeave(FunctionInvocationNode node) {
+            defaultVisitLeave(node);
+        }
+
+        @Override
+        public void visitEnter(AssignmentStatementNode node) {
+            defaultVisitEnter(node);
+        }
+        @Override
+        public void visitLeave(AssignmentStatementNode node) {
             defaultVisitLeave(node);
         }
 

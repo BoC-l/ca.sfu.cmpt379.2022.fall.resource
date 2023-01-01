@@ -86,14 +86,14 @@ public class Scope {
 		symbolTable.errorIfAlreadyDefined(token);
 
 		String lexeme = token.getLexeme();
-		Binding binding = allocateNewBinding(type, token.getLocation(), lexeme);	
+		Binding binding = allocateNewBinding(type, token.getLocation(), lexeme, identifierNode.isMutable());	
 		symbolTable.install(lexeme, binding);
 
 		return binding;
 	}
-	private Binding allocateNewBinding(Type type, TextLocation textLocation, String lexeme) {
+	private Binding allocateNewBinding(Type type, TextLocation textLocation, String lexeme, boolean isMutable) {
 		MemoryLocation memoryLocation = allocator.allocate(type.getSize());
-		return new Binding(type, textLocation, memoryLocation, lexeme);
+		return new Binding(type, textLocation, memoryLocation, lexeme, isMutable);
 	}
 
 ///////////////////////////////////////////////////////////////////////

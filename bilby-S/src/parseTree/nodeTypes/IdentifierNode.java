@@ -11,11 +11,14 @@ import tokens.Token;
 public class IdentifierNode extends ParseNode {
 	private Binding binding;
 	private Scope declarationScope;
+    private boolean isMutable;
 
 	public IdentifierNode(Token token) {
 		super(token);
 		assert(token instanceof IdentifierToken);
 		this.binding = null;
+        this.declarationScope = null;
+        this.isMutable = false;
 	}
 	public IdentifierNode(ParseNode node) {
 		super(node);
@@ -74,4 +77,10 @@ public class IdentifierNode extends ParseNode {
 	public void accept(ParseNodeVisitor visitor) {
 		visitor.visit(this);
 	}
+    public boolean isMutable() {
+        return isMutable;
+    }
+    public void setMutable(boolean isMutable) {
+        this.isMutable = isMutable;
+    }
 }

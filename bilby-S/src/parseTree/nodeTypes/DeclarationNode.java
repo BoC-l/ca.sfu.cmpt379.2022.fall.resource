@@ -11,7 +11,7 @@ public class DeclarationNode extends ParseNode {
 
 	public DeclarationNode(Token token) {
 		super(token);
-		assert(token.isLextant(Keyword.IMM));
+		assert(token.isLextant(Keyword.IMM, Keyword.MUT));
 	}
 
 	public DeclarationNode(ParseNode node) {

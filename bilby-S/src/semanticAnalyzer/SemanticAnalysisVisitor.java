@@ -1,12 +1,15 @@
 package semanticAnalyzer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lexicalAnalyzer.Keyword;
 import lexicalAnalyzer.Lextant;
 import logging.BilbyLogger;
 import parseTree.ParseNode;
 import parseTree.ParseNodeVisitor;
+import parseTree.nodeTypes.AssignmentStatementNode;
 import parseTree.nodeTypes.BlockStatementNode;
 import parseTree.nodeTypes.BooleanConstantNode;
 import parseTree.nodeTypes.DeclarationNode;
@@ -80,6 +83,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		node.setType(declarationType);
 		
 		identifier.setType(declarationType);
+        identifier.setMutable(node.getToken().isLextant(Keyword.MUT));
 		SemanticAnalyzer.addBinding(identifier, declarationType);
 	}
     @Override
@@ -96,7 +100,27 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
         TypeNode type = (TypeNode) node.child(0);
         IdentifierNode identifier = (IdentifierNode) node.child(1);
         identifier.setType(type.getType());
+        // identifier.setMutable(true);
         SemanticAnalyzer.addBinding(identifier, type.getType());
+    }
+
+    @Override
+    public void visitLeave(AssignmentStatementNode node) {
+        IdentifierNode identifier = (IdentifierNode) node.child(0);
+        if (!identifier.isMutable()) {
+            BilbyLogger logger = BilbyLogger.getLogger("compiler.semanticAnalyzer");
+            logger.severe("Cannot assign to immutable variable " + identifier.getToken().getLexeme());
+            return;
+        }
+        ParseNode expression = node.child(1);
+        Type identifierType = identifier.getType();
+        Type expressionType = expression.getType();
+        if(!identifierType.equals(expressionType)) {
+            List<Type> types = new ArrayList<Type>();
+            types.add(identifierType);
+            types.add(expressionType);
+            typeCheckError(node, types);
+        }
     }
 
 	///////////////////////////////////////////////////////////////////////////
@@ -202,6 +226,7 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 			
 			node.setType(binding.getType());
 			node.setBinding(binding);
+            node.setMutable(binding.isMutable());
 		}
 		// else parent DeclarationNode does the processing.
 	}
