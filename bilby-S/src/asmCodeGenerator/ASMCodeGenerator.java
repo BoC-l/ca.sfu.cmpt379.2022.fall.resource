@@ -9,16 +9,23 @@ import asmCodeGenerator.runtime.RunTime;
 import lexicalAnalyzer.Lextant;
 import lexicalAnalyzer.Punctuator;
 import parseTree.*;
+import parseTree.nodeTypes.BlockStatementNode;
 import parseTree.nodeTypes.BooleanConstantNode;
-import parseTree.nodeTypes.MainBlockNode;
+import parseTree.nodeTypes.CallStatementNode;
 import parseTree.nodeTypes.DeclarationNode;
+import parseTree.nodeTypes.ExpressionListNode;
+import parseTree.nodeTypes.FunctionDefinitionNode;
+import parseTree.nodeTypes.FunctionInvocationNode;
 import parseTree.nodeTypes.IdentifierNode;
+import parseTree.nodeTypes.IfStatementNode;
 import parseTree.nodeTypes.IntegerConstantNode;
 import parseTree.nodeTypes.NewlineNode;
 import parseTree.nodeTypes.OperatorNode;
 import parseTree.nodeTypes.PrintStatementNode;
 import parseTree.nodeTypes.ProgramNode;
+import parseTree.nodeTypes.ReturnStatementNode;
 import parseTree.nodeTypes.SpaceNode;
+import semanticAnalyzer.signatures.FunctionSignature;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
 import symbolTable.Binding;
@@ -64,23 +71,28 @@ public class ASMCodeGenerator {
 		
 		code.add(    Label, RunTime.MAIN_PROGRAM_LABEL);
 		code.append( programCode());
-		code.add(    Halt );
 		
 		return code;
 	}
 	private ASMCodeFragment programCode() {
+        ASMCodeFragment code = new ASMCodeFragment(GENERATES_VOID);
 		CodeVisitor visitor = new CodeVisitor();
 		root.accept(visitor);
-		return visitor.removeRootCode(root);
+		code.append(visitor.removeRootCode(root));
+        code.add(Halt);
+        code.append(visitor.functions);
+        return code;
 	}
 
 
 	protected class CodeVisitor extends ParseNodeVisitor.Default {
 		private Map<ParseNode, ASMCodeFragment> codeMap;
 		ASMCodeFragment code;
+        ASMCodeFragment functions;
 		
 		public CodeVisitor() {
 			codeMap = new HashMap<ParseNode, ASMCodeFragment>();
+            functions = new ASMCodeFragment(GENERATES_VOID);
 		}
 
 
@@ -164,13 +176,94 @@ public class ASMCodeGenerator {
 				code.append(childCode);
 			}
 		}
-		public void visitLeave(MainBlockNode node) {
-			newVoidCode(node);
-			for(ParseNode child : node.getChildren()) {
-				ASMCodeFragment childCode = removeVoidCode(child);
-				code.append(childCode);
-			}
-		}
+        public void visitLeave(FunctionDefinitionNode node) {
+            // part 1: generate the function code
+            ASMCodeFragment functionCode = new ASMCodeFragment(GENERATES_VOID);
+            functionCode.add(Label, node.getName());
+            // [... ra]
+            // prologue
+
+            // dynamic link: mem[sp - 4] <= fp
+            Macros.loadIFrom(functionCode, RunTime.STACK_POINTER);
+            functionCode.add(PushI, 4);
+            functionCode.add(Subtract);
+            Macros.loadIFrom(functionCode, RunTime.FRAME_POINTER);
+            functionCode.add(StoreI);
+
+            // mem[sp - 8] <= return address
+            Macros.loadIFrom(functionCode, RunTime.STACK_POINTER);
+            functionCode.add(PushI, 8);
+            functionCode.add(Subtract);
+            // [... ra sp-8]
+            functionCode.add(Exchange);
+            functionCode.add(StoreI);
+
+            // fp <= sp
+            Macros.loadIFrom(functionCode, RunTime.STACK_POINTER);
+            Macros.storeITo(functionCode, RunTime.FRAME_POINTER);
+    
+            // reserve space for dynamic link and return address, sp <= sp - 8
+            Macros.loadIFrom(functionCode, RunTime.STACK_POINTER);
+            functionCode.add(PushI, 8);
+            functionCode.add(Subtract);
+            // reserve space for local variables, sp <= sp - scopeSize
+            BlockStatementNode block = (BlockStatementNode) node.child(3);
+            functionCode.add(PushI, block.getScope().getAllocatedSize());
+            functionCode.add(Subtract);
+            Macros.storeITo(functionCode, RunTime.STACK_POINTER);
+
+            functionCode.append(removeVoidCode(node.child(3))); // [... rv?]
+
+            // epilogue
+            functionCode.add(Label, node.getEpilogueLabel());
+
+            // restore ra, push to asm stack the value mem[fp - 8]
+            Macros.loadIFrom(functionCode, RunTime.FRAME_POINTER);
+            functionCode.add(PushI, 8);
+            functionCode.add(Subtract);
+            functionCode.add(LoadI);    // [... rv? ra]
+
+            // restore sp <- fp
+            Macros.loadIFrom(functionCode, RunTime.FRAME_POINTER);
+            Macros.storeITo(functionCode, RunTime.STACK_POINTER);
+
+            // restore fp
+            Macros.loadIFrom(functionCode, RunTime.FRAME_POINTER);
+            functionCode.add(PushI, 4);
+            functionCode.add(Subtract);
+            functionCode.add(LoadI);    // [... ra fp']
+            Macros.storeITo(functionCode, RunTime.FRAME_POINTER);   // [... rv? ra]
+
+            FunctionSignature signature = (FunctionSignature) node.getType();
+            if(signature.resultType() != PrimitiveType.VOID) {
+                functionCode.add(Exchange); // [... ra rv]
+                // put the value on the call stack
+                // sp <= sp - 4
+                Macros.loadIFrom(functionCode, RunTime.STACK_POINTER);
+                functionCode.add(PushI, 4);
+                functionCode.add(Subtract);
+                Macros.storeITo(functionCode, RunTime.STACK_POINTER);
+                // mem[sp] <= rv
+                Macros.loadIFrom(functionCode, RunTime.STACK_POINTER);
+                functionCode.add(Exchange);
+                functionCode.add(StoreI);
+            }
+            functionCode.add(Return);
+            functions.append(functionCode);
+            // part 2: set the function pointer
+            newVoidCode(node);
+            code.append(removeAddressCode(node.child(1)));
+            code.add(PushD, node.getName());
+            code.add(StoreI);
+        }
+
+        public void visitLeave(BlockStatementNode node) {
+            newVoidCode(node);
+            for(ParseNode child : node.getChildren()) {
+                ASMCodeFragment childCode = removeVoidCode(child);
+                code.append(childCode);
+            }
+        }
 
 		///////////////////////////////////////////////////////////////////////////
 		// statements and declarations
@@ -190,6 +283,40 @@ public class ASMCodeGenerator {
 			code.add(Printf);
 		}
 		
+        public void visitLeave(CallStatementNode node) {
+            newVoidCode(node);
+            FunctionInvocationNode functionInvocation = (FunctionInvocationNode) node.child(0);
+            code.append(removeValueCode(functionInvocation));
+            code.add(Pop);
+        }
+
+        public void visitLeave(IfStatementNode node) {
+            newVoidCode(node);
+
+            Labeller labeller = new Labeller("if");
+            String endLabel = labeller.newLabel("end");
+			
+            code.append(removeValueCode(node.child(0)));
+            code.add(JumpFalse, endLabel);
+            code.append(removeVoidCode(node.child(1)));
+            code.add(Jump, endLabel);
+            if (node.nChildren() == 3) {
+                code.append(removeVoidCode(node.child(2)));
+            }
+            code.add(Label, endLabel);
+        }
+
+        public void visitLeave(ReturnStatementNode node) {            
+            newVoidCode(node);
+
+            if (node.nChildren() == 1) {
+                code.append(removeValueCode(node.child(0)));
+            }
+
+            FunctionDefinitionNode function = node.getFunctionDefinitionNode();
+            assert function != null;
+            code.add(Jump, function.getEpilogueLabel());
+        }
 
 		public void visitLeave(DeclarationNode node) {
 			newVoidCode(node);
@@ -297,7 +424,86 @@ public class ASMCodeGenerator {
 			return null;
 		}
 
-		///////////////////////////////////////////////////////////////////////////
+        // identifier ( expression-list )
+        @Override
+        public void visitLeave(FunctionInvocationNode node) {
+
+            // no matter what the return type is,
+            // function invocation always returns a value
+            newValueCode(node);
+
+            // push arguments to call stack
+            ExpressionListNode arguments = (ExpressionListNode) node.child(1);
+            int sizeOfArguments = 0;
+            // push arguments from right to left
+            // ----------
+            // | argN-1 |
+            // | argN-2 |
+            // | ...    |
+            // | arg1   |
+            // | arg0   | <- sp
+            // ----------
+            for (int i = arguments.nChildren() - 1; i >= 0; i--) {
+                Macros.loadIFrom(code, RunTime.STACK_POINTER); // [... sp]
+                Type argumentType = arguments.child(i).getType();
+                int argumentSize = argumentType.getSize();
+                code.add(PushI, argumentSize); // [... sp size]
+                code.add(Subtract); // [... sp - size]
+                Macros.storeITo(code, RunTime.STACK_POINTER); // sp <= sp - size, [...]
+                Macros.loadIFrom(code, RunTime.STACK_POINTER); // [... sp]
+                code.append(removeValueCode(arguments.child(i))); // [... sp value]
+                code.add(storeCodeForType(argumentType)); // [...], mem[sp] <= value
+                sizeOfArguments += argumentSize;
+            }
+
+            // call function
+            IdentifierNode function = (IdentifierNode) node.child(0);
+            code.append(removeAddressCode(function));
+            code.add(LoadI);
+            code.add(CallV);
+
+            // get return value from mem[sp] and put it on accumulator stack
+            FunctionSignature signature = (FunctionSignature) function.getType();
+            Type returnType = signature.resultType();
+            if(returnType != PrimitiveType.VOID) {
+                // [... rv] <- mem[sp]
+                Macros.loadIFrom(code, RunTime.STACK_POINTER); // [... sp]
+                code.add(loadForType(returnType)); // [... rv]
+            } else {
+                code.add(PushI, 0); // [... 0]
+            }
+
+            // clean up the stack, pull back the space for arguments and return value
+            Macros.loadIFrom(code, RunTime.STACK_POINTER); // [... rv sp]
+            code.add(PushI, returnType.getSize() + sizeOfArguments); // [... rv sp size]
+            code.add(Add); // [... rv sp + size]
+            Macros.storeITo(code, RunTime.STACK_POINTER); // sp <= sp + size, [... rv]
+        }
+
+        private static ASMOpcode storeCodeForType(Type argumentType) {
+            if(argumentType == PrimitiveType.BOOLEAN) {
+                return StoreC;
+            }
+            if(argumentType == PrimitiveType.INTEGER) {
+                return StoreI;
+            }
+            assert false : "unimplemented type in storeCodeForType";
+            return null;
+        }
+
+        public ASMOpcode loadForType(Type returnType) {
+            if(returnType == PrimitiveType.BOOLEAN) {
+                return LoadC;
+            }
+            if(returnType == PrimitiveType.INTEGER) {
+                return LoadI;
+            }
+            assert false : "unimplemented type in loadForType";
+            return null;
+        }
+
+
+        ///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)
 		public void visit(BooleanConstantNode node) {
 			newValueCode(node);

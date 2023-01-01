@@ -1,0 +1,7 @@
+func void f(int a, int b) {
+    print a $s b $n;
+}
+
+main {
+    call f(1, 2);
+}

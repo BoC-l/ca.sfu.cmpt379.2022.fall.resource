@@ -1,6 +1,8 @@
 package semanticAnalyzer.signatures;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
@@ -8,7 +10,7 @@ import lexicalAnalyzer.Lextant;
 import lexicalAnalyzer.Punctuator;
 
 //immutable
-public class FunctionSignature {
+public class FunctionSignature implements Type {
 	private static final boolean ALL_TYPES_ACCEPT_ERROR_TYPES = true;
 	private Type resultType;
 	private Type[] paramTypes;
@@ -107,4 +109,24 @@ public class FunctionSignature {
 		}
 	}
 
+    public static final int FUNCTION_TYPE_SIZE = 4;
+
+    @Override
+    public int getSize() {
+        return FUNCTION_TYPE_SIZE;
+    }
+    @Override
+    public String infoString() {
+        String parameters = Arrays.asList(paramTypes).stream().map(Type::infoString).collect(Collectors.joining(", "));
+        return "function (" + parameters + ") -> " + resultType.infoString();
+    }
+    public static FunctionSignature make(Type resultType, List<Type> paramTypes) {
+        int variant = 1;
+        Type[] types = new Type[paramTypes.size() + 1];
+        for (int i = 0; i < paramTypes.size(); i++) {
+            types[i] = paramTypes.get(i);
+        }
+        types[paramTypes.size()] = resultType;
+        return new FunctionSignature(variant, types);
+    }
 }

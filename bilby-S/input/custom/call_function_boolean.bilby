@@ -1,0 +1,8 @@
+func bool greater(int left, int right) {
+    return left > right;
+}
+
+main {
+    print greater(3, 4) $n;
+    print greater(4, 3) $n;
+}

@@ -5,7 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import asmCodeGenerator.codeStorage.ASMOpcode;
+import lexicalAnalyzer.Punctuator;
 import semanticAnalyzer.types.Type;
+import static semanticAnalyzer.types.PrimitiveType.*;
 
 
 public class FunctionSignatures extends ArrayList<FunctionSignature> {
@@ -67,10 +70,10 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 		// here's one example to get you started with FunctionSignatures: the signatures for addition.		
 		// for this to work, you should statically import PrimitiveType.*
 
-//		new FunctionSignatures(Punctuator.ADD,
-//		    new FunctionSignature(ASMOpcode.Add, INTEGER, INTEGER, INTEGER),
-//		    new FunctionSignature(ASMOpcode.FAdd, FLOAT, FLOAT, FLOAT)
-//		);
+		new FunctionSignatures(Punctuator.ADD,
+		    new FunctionSignature(ASMOpcode.Add, INTEGER, INTEGER, INTEGER)
+		    // new FunctionSignature(ASMOpcode.FAdd, FLOAT, FLOAT, FLOAT)
+		);
 		
 		// First, we use the operator itself (in this case the Punctuator ADD) as the key.
 		// Then, we give that key two signatures: one an (INT x INT -> INT) and the other
@@ -91,6 +94,15 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 		// a small object with one method (the "Command" design pattern) that generates the
 		// required code.
 
+        new FunctionSignatures(Punctuator.SUBTRACT,
+            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER)
+        );
+        new FunctionSignatures(Punctuator.MULTIPLY,
+            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, INTEGER)
+        );
+        new FunctionSignatures(Punctuator.GREATER,
+            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, BOOLEAN)
+        );
 	}
 
 }

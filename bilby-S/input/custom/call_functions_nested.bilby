@@ -1,0 +1,14 @@
+func void f() {
+    print 1 $n;
+}
+
+func void g() {
+    call f();
+    print 2 $n;
+}
+
+main {
+    call f();
+    call g();
+    print 0 $n;
+}

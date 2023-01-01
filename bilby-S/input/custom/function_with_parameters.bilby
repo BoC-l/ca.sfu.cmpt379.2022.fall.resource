@@ -1,0 +1,7 @@
+func int f(int a, int b) {
+    return a + b;
+}
+
+main {
+    print f(1, 2) $n;
+}

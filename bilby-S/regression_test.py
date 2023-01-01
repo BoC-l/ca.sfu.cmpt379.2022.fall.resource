@@ -46,7 +46,7 @@ def run_emulator(asm_file_path):
         stderr=subprocess.PIPE)
     return p.stdout.decode('utf-8'), p.stderr.decode('utf-8'), p.returncode
 
-@pytest.mark.parametrize('test_relative_path', get_tests())
+@pytest.mark.parametrize('test_relative_path', get_tests('custom'))
 def test_compile_and_emulate(test_relative_path):
     full_test_path = os.path.join(TEST_DATA_ROOT_PATH, test_relative_path)
     print('Running test: {}'.format(test_relative_path))

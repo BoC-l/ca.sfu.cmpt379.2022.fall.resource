@@ -362,7 +362,7 @@ class Emulator:
                     format_string = format_string.replace('%c', chr(value))
                 print(format_string, end='')
             case 'pstack':
-                print(self.stack)
+                print(self.stack, ":", ' '.join(instruction[1:]))
             case 'nop':
                 pass
             case _:

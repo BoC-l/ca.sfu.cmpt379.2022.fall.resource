@@ -1,0 +1,11 @@
+func void f(int n) {
+    if (n > 2) {
+        return;
+    }
+    print n $n;
+    call f(n + 1);
+}
+
+main {
+    call f(0);
+}

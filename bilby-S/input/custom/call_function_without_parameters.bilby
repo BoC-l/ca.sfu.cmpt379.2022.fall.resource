@@ -1,0 +1,8 @@
+func void f() {
+    print 42 $n;
+}
+
+main {
+    call f();
+    print 0 $n;
+}

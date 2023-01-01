@@ -16,6 +16,16 @@
             "request": "launch",
             "mainClass": "applications.BilbyTokenPrinter",
             "projectName": "bilby-S",
+            "vmArgs": "-enableassertions",
+            "args": ["${file}"]
+        },
+        {
+            "name": "parse",
+            "type": "java",
+            "request": "launch",
+            "mainClass": "applications.BilbyAbstractSyntaxTree",
+            "projectName": "bilby-S",
+            "vmArgs": "-enableassertions",
             "args": ["${file}"]
         },
         {
@@ -24,6 +34,7 @@
             "request": "launch",
             "mainClass": "applications.BilbySemanticChecker",
             "projectName": "bilby-S",
+            "vmArgs": "-enableassertions",
             "args": ["${file}"]
         },
         {
@@ -32,6 +43,7 @@
             "request": "launch",
             "mainClass": "applications.BilbyCompiler",
             "projectName": "bilby-S",
+            "vmArgs": "-enableassertions",
             "args": ["${file}"]
         },
         {
@@ -49,6 +61,7 @@
             "request": "launch",
             "mainClass": "applications.BilbyCompiler",
             "projectName": "bilby-S",
+            "vmArgs": "-enableassertions",
             "args": ["${file}", "${fileDirname}"]
         },
         {

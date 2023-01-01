@@ -1,0 +1,7 @@
+func bool f() {
+    return 42;
+}
+
+main {
+    print f() $n;
+}
