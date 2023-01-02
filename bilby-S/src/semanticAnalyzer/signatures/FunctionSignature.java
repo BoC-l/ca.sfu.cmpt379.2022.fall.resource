@@ -6,8 +6,6 @@ import java.util.stream.Collectors;
 
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
-import lexicalAnalyzer.Lextant;
-import lexicalAnalyzer.Punctuator;
 
 //immutable
 public class FunctionSignature implements Type {
