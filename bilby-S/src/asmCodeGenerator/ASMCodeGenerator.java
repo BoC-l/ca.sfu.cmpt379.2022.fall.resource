@@ -295,13 +295,16 @@ public class ASMCodeGenerator {
             newVoidCode(node);
 
             Labeller labeller = new Labeller("if");
+            String elseLabel = labeller.newLabel("else");
             String endLabel = labeller.newLabel("end");
+            boolean hasElseBlock = node.nChildren() == 3;
 			
             code.append(removeValueCode(node.child(0)));
-            code.add(JumpFalse, endLabel);
+            code.add(JumpFalse, hasElseBlock ? elseLabel : endLabel);
             code.append(removeVoidCode(node.child(1)));
             code.add(Jump, endLabel);
-            if (node.nChildren() == 3) {
+            if (hasElseBlock) {
+                code.add(Label, elseLabel);
                 code.append(removeVoidCode(node.child(2)));
             }
             code.add(Label, endLabel);

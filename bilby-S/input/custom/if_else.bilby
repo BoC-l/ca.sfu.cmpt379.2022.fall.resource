@@ -1,0 +1,17 @@
+func void sign(int a) {
+    if (a > 0) {
+        print 1 $n;
+    } else {
+        if (0 > a) {
+            print -1 $n;
+        } else {
+            print 0 $n;
+        }
+    }
+}
+
+main {
+    call sign(5);
+    call sign(-2);
+    call sign(0);
+}
