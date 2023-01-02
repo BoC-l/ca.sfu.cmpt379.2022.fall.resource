@@ -154,7 +154,7 @@ public class Parser {
 	///////////////////////////////////////////////////////////
 	// statements
 	
-	// statement-> declaration | printStmt | callStatement | ifStmt | returnStatement | assignmentStatement
+	// statement-> declaration | printStmt | callStatement | ifStmt | returnStatement | assignmentStatement | blockStatement
 	private ParseNode parseStatement() {
 		if(!startsStatement(nowReading)) {
 			return syntaxErrorNode("statement");
@@ -176,6 +176,9 @@ public class Parser {
         }
         if(startsAssignmentStatement(nowReading)) {
             return parseAssignmentStatement();
+        }
+        if(startsBlockStatement(nowReading)) {
+            return parseBlockStatement();
         }
 		return syntaxErrorNode("statement");
 	}
@@ -256,7 +259,8 @@ public class Parser {
                startsCallStatement(token) ||
                startsIfStatement(token) ||
                startsReturnStatement(token) ||
-               startsAssignmentStatement(token);
+               startsAssignmentStatement(token) ||
+               startsBlockStatement(token);
 	}
 	
 	private boolean startsIfStatement(Token token) {
