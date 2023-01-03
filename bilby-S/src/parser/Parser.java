@@ -12,6 +12,7 @@ import parseTree.nodeTypes.CharConstantNode;
 import parseTree.nodeTypes.DeclarationNode;
 import parseTree.nodeTypes.ErrorNode;
 import parseTree.nodeTypes.ExpressionListNode;
+import parseTree.nodeTypes.FloatConstantNode;
 import parseTree.nodeTypes.FunctionDefinitionNode;
 import parseTree.nodeTypes.FunctionInvocationNode;
 import parseTree.nodeTypes.IdentifierNode;
@@ -373,7 +374,7 @@ public class Parser {
 	// atomicExpression         -> unaryExpression | literal | functionInvocation
 	// unaryExpression			-> UNARYOP atomicExpression
     // functionInvocation       -> identifier ( expressionList )
-	// literal                  -> intNumber | identifier | booleanConstant | charConstant
+	// literal                  -> intNumber | identifier | booleanConstant | charConstant | floatNumber
 
 	// expr  -> comparisonExpression
 	private ParseNode parseExpression() {		
@@ -504,19 +505,34 @@ public class Parser {
         if(startsCharLiteral(nowReading)) {
             return parseCharLiteral();
         }
+        if(startsFloatLiteral(nowReading)) {
+            return parseFloatLiteral();
+        }
 
 		return syntaxErrorNode("literal");
 	}
-	private ParseNode parseCharLiteral() {
+	private ParseNode parseFloatLiteral() {
+        assert startsFloatLiteral(nowReading);
+        readToken();
+        return new FloatConstantNode(previouslyRead);
+    }
+    private ParseNode parseCharLiteral() {
         assert startsCharLiteral(nowReading);
         readToken();
         return new CharConstantNode(previouslyRead);
     }
     private boolean startsLiteral(Token token) {
-		return startsIntLiteral(token) || startsIdentifier(token) || startsBooleanLiteral(token) || startsCharLiteral(token);
-	}
+        return startsIntLiteral(token) ||
+               startsIdentifier(token) ||
+               startsBooleanLiteral(token) ||
+               startsCharLiteral(token) ||
+               startsFloatLiteral(token);
+    }
 
-	private boolean startsCharLiteral(Token token) {
+	private boolean startsFloatLiteral(Token token) {
+        return token instanceof FloatToken;
+    }
+    private boolean startsCharLiteral(Token token) {
         return token instanceof CharacterToken;
     }
     // number (literal)

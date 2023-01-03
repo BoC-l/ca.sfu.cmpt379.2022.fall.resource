@@ -8,6 +8,7 @@ import inputHandler.LocatedChar;
 import inputHandler.LocatedCharStream;
 import inputHandler.PushbackCharStream;
 import tokens.CharacterToken;
+import tokens.FloatToken;
 import tokens.IdentifierToken;
 import tokens.LextantToken;
 import tokens.NullToken;
@@ -107,15 +108,45 @@ public class LexicalAnalyzer extends ScannerImp {
 	
 	
 	//////////////////////////////////////////////////////////////////////////////
-	// Integer lexical analysis	
+	// Integer/Floating lexical analysis	
 
 	private Token scanNumber(LocatedChar firstChar) {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(firstChar.getCharacter());
 		appendSubsequentDigits(buffer);
-		
-		return NumberToken.make(firstChar, buffer.toString());
+		LocatedChar c = input.next();
+        if (!c.isChar('.')) {
+            input.pushback(c);
+            return NumberToken.make(firstChar, buffer.toString());
+        }
+        buffer.append(c.getCharacter()); // .
+        c = input.next();
+        if (!c.isDigit()) {
+            lexicalError(c);
+            return findNextToken();
+        }
+        buffer.append(c.getCharacter());
+        appendSubsequentDigits(buffer);
+        c = input.next();
+        if (!c.isChar('E')) {
+            input.pushback(c);
+            return FloatToken.make(firstChar, buffer.toString());
+        }
+        buffer.append(c.getCharacter()); // E
+        c = input.next();
+        if (c.isChar('+') || c.isChar('-')) {
+            buffer.append(c.getCharacter());
+            c = input.next();
+        }
+        if (!c.isDigit()) {
+            lexicalError(c);
+            return findNextToken();
+        }
+        buffer.append(c.getCharacter());
+        appendSubsequentDigits(buffer);
+        return FloatToken.make(firstChar, buffer.toString());
 	}
+
 	private void appendSubsequentDigits(StringBuffer buffer) {
 		LocatedChar c = input.next();
 		while(c.isDigit()) {

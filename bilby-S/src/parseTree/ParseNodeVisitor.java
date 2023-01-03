@@ -8,6 +8,7 @@ import parseTree.nodeTypes.CharConstantNode;
 import parseTree.nodeTypes.DeclarationNode;
 import parseTree.nodeTypes.ErrorNode;
 import parseTree.nodeTypes.ExpressionListNode;
+import parseTree.nodeTypes.FloatConstantNode;
 import parseTree.nodeTypes.FunctionDefinitionNode;
 import parseTree.nodeTypes.FunctionInvocationNode;
 import parseTree.nodeTypes.IdentifierNode;
@@ -81,7 +82,8 @@ public interface ParseNodeVisitor {
 	void visit(NewlineNode node);
 	void visit(SpaceNode node);
     void visit(TypeNode node);
-    void visit(CharConstantNode charConstantNode);
+    void visit(CharConstantNode node);
+    void visit(FloatConstantNode node);
 
 	
 	public static class Default implements ParseNodeVisitor
@@ -233,9 +235,12 @@ public interface ParseNodeVisitor {
             defaultVisitForLeaf(node);
         }
         @Override
-        public void visit(CharConstantNode charConstantNode) {
-            defaultVisitForLeaf(charConstantNode);
+        public void visit(CharConstantNode node) {
+            defaultVisitForLeaf(node);
+        }
+        @Override
+        public void visit(FloatConstantNode node) {
+            defaultVisitForLeaf(node);
         }
 	}
-
 }

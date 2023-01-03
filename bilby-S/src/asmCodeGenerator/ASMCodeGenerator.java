@@ -16,6 +16,7 @@ import parseTree.nodeTypes.CallStatementNode;
 import parseTree.nodeTypes.CharConstantNode;
 import parseTree.nodeTypes.DeclarationNode;
 import parseTree.nodeTypes.ExpressionListNode;
+import parseTree.nodeTypes.FloatConstantNode;
 import parseTree.nodeTypes.FunctionDefinitionNode;
 import parseTree.nodeTypes.FunctionInvocationNode;
 import parseTree.nodeTypes.IdentifierNode;
@@ -539,6 +540,10 @@ public class ASMCodeGenerator {
         public void visit(CharConstantNode node) {
             newValueCode(node);
             code.add(PushI, node.getValue());
+        }
+        public void visit(FloatConstantNode node) {
+            newValueCode(node);
+            code.add(PushF, node.getValue());
         }
 	}
 
