@@ -3,6 +3,7 @@ package semanticAnalyzer.types;
 
 public enum PrimitiveType implements Type {
 	BOOLEAN(1),
+    CHAR(1),
 	INTEGER(4),
     VOID(0),
 	ERROR(0),			// use as a value when a syntax error has occurred

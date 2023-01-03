@@ -7,6 +7,7 @@ import inputHandler.InputHandler;
 import inputHandler.LocatedChar;
 import inputHandler.LocatedCharStream;
 import inputHandler.PushbackCharStream;
+import tokens.CharacterToken;
 import tokens.IdentifierToken;
 import tokens.LextantToken;
 import tokens.NullToken;
@@ -34,14 +35,31 @@ public class LexicalAnalyzer extends ScannerImp {
 	protected Token findNextToken() {
 		LocatedChar ch = nextNonWhitespaceChar();
 		if(ch.isDigit()) {
-			return scanNumber(ch);
+            try {
+                return scanNumber(ch);
+            } catch (NumberFormatException e) {
+                lexicalError(ch);
+                return findNextToken();
+            }
 		}
 		else if(ch.isLowerCase()) {
 			return scanIdentifier(ch);
 		}
+        else if(isCharacterStart(ch)) {
+            try {
+                return scanCharacter(ch);
+            } catch (Exception e) {
+                lexicalError(ch);
+                return findNextToken();
+            }
+        }
 		else if(isPunctuatorStart(ch)) {
 			return PunctuatorScanner.scan(ch, input);
 		}
+        else if(ch.isChar('%')) {
+            skipComment(ch);
+            return findNextToken();
+        }
 		else if(isEndOfInput(ch)) {
 			return NullToken.make(ch);
 		}
@@ -51,8 +69,35 @@ public class LexicalAnalyzer extends ScannerImp {
 		}
 	}
 
+	private void skipComment(LocatedChar ch) {
+        LocatedChar c = input.next();
+        while(!c.isChar('%') && !c.isChar('\n') && !isEndOfInput(c)) {
+            c = input.next();
+        }
+    }
 
-	private LocatedChar nextNonWhitespaceChar() {
+    private Token scanCharacter(LocatedChar ch) {
+        assert isCharacterStart(ch);
+        StringBuffer buffer = new StringBuffer();
+        buffer.append(ch.getCharacter());
+        LocatedChar c = input.next();
+        if (c.isWhitespace()) {
+            buffer.append(c.getCharacter());
+            return CharacterToken.make(ch, buffer.toString());
+        }
+        while (!c.isWhitespace()) {
+            buffer.append(c.getCharacter());
+            c = input.next();
+        }
+        input.pushback(c);
+        return CharacterToken.make(ch, buffer.toString());
+    }
+
+    private boolean isCharacterStart(LocatedChar ch) {
+        return ch.getCharacter() == '#';
+    }
+
+    private LocatedChar nextNonWhitespaceChar() {
 		LocatedChar ch = input.next();
 		while(ch.isWhitespace()) {
 			ch = input.next();

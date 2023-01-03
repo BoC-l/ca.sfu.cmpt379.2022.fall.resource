@@ -8,6 +8,7 @@ import parseTree.nodeTypes.AssignmentStatementNode;
 import parseTree.nodeTypes.BlockStatementNode;
 import parseTree.nodeTypes.BooleanConstantNode;
 import parseTree.nodeTypes.CallStatementNode;
+import parseTree.nodeTypes.CharConstantNode;
 import parseTree.nodeTypes.DeclarationNode;
 import parseTree.nodeTypes.ErrorNode;
 import parseTree.nodeTypes.ExpressionListNode;
@@ -372,7 +373,7 @@ public class Parser {
 	// atomicExpression         -> unaryExpression | literal | functionInvocation
 	// unaryExpression			-> UNARYOP atomicExpression
     // functionInvocation       -> identifier ( expressionList )
-	// literal                  -> intNumber | identifier | booleanConstant
+	// literal                  -> intNumber | identifier | booleanConstant | charConstant
 
 	// expr  -> comparisonExpression
 	private ParseNode parseExpression() {		
@@ -500,14 +501,25 @@ public class Parser {
 		if(startsBooleanLiteral(nowReading)) {
 			return parseBooleanLiteral();
 		}
+        if(startsCharLiteral(nowReading)) {
+            return parseCharLiteral();
+        }
 
 		return syntaxErrorNode("literal");
 	}
-	private boolean startsLiteral(Token token) {
-		return startsIntLiteral(token) || startsIdentifier(token) || startsBooleanLiteral(token);
+	private ParseNode parseCharLiteral() {
+        assert startsCharLiteral(nowReading);
+        readToken();
+        return new CharConstantNode(previouslyRead);
+    }
+    private boolean startsLiteral(Token token) {
+		return startsIntLiteral(token) || startsIdentifier(token) || startsBooleanLiteral(token) || startsCharLiteral(token);
 	}
 
-	// number (literal)
+	private boolean startsCharLiteral(Token token) {
+        return token instanceof CharacterToken;
+    }
+    // number (literal)
 	private ParseNode parseIntLiteral() {
 		if(!startsIntLiteral(nowReading)) {
 			return syntaxErrorNode("integer constant");

@@ -13,6 +13,7 @@ import parseTree.nodeTypes.AssignmentStatementNode;
 import parseTree.nodeTypes.BlockStatementNode;
 import parseTree.nodeTypes.BooleanConstantNode;
 import parseTree.nodeTypes.CallStatementNode;
+import parseTree.nodeTypes.CharConstantNode;
 import parseTree.nodeTypes.DeclarationNode;
 import parseTree.nodeTypes.ExpressionListNode;
 import parseTree.nodeTypes.FunctionDefinitionNode;
@@ -535,6 +536,10 @@ public class ASMCodeGenerator {
 			
 			code.add(PushI, node.getValue());
 		}
+        public void visit(CharConstantNode node) {
+            newValueCode(node);
+            code.add(PushI, node.getValue());
+        }
 	}
 
 }
