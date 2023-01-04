@@ -1,0 +1,4 @@
+main {
+    imm f := 1.0;
+    print f $n;
+}

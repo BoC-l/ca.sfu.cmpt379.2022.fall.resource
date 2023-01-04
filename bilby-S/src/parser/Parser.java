@@ -26,6 +26,7 @@ import parseTree.nodeTypes.PrintStatementNode;
 import parseTree.nodeTypes.ProgramNode;
 import parseTree.nodeTypes.ReturnStatementNode;
 import parseTree.nodeTypes.SpaceNode;
+import parseTree.nodeTypes.StringConstantNode;
 import parseTree.nodeTypes.TypeNode;
 import tokens.*;
 import lexicalAnalyzer.Keyword;
@@ -487,7 +488,7 @@ public class Parser {
 		return token.isLextant(Punctuator.SUBTRACT);
 	}
 	
-	// literal -> number | identifier | booleanConstant
+	// literal -> number | identifier | booleanConstant | charConstant | floatNumber | stringConstant
 	private ParseNode parseLiteral() {
 		if(!startsLiteral(nowReading)) {
 			return syntaxErrorNode("literal");
@@ -508,10 +509,21 @@ public class Parser {
         if(startsFloatLiteral(nowReading)) {
             return parseFloatLiteral();
         }
+        if(startsStringLiteral(nowReading)) {
+            return parseStringLiteral();
+        }
 
 		return syntaxErrorNode("literal");
 	}
-	private ParseNode parseFloatLiteral() {
+	private ParseNode parseStringLiteral() {
+        assert startsStringLiteral(nowReading);
+        readToken();
+        return new StringConstantNode(previouslyRead);
+    }
+    private boolean startsStringLiteral(Token token) {
+        return token instanceof StringToken;
+    }
+    private ParseNode parseFloatLiteral() {
         assert startsFloatLiteral(nowReading);
         readToken();
         return new FloatConstantNode(previouslyRead);
@@ -526,7 +538,8 @@ public class Parser {
                startsIdentifier(token) ||
                startsBooleanLiteral(token) ||
                startsCharLiteral(token) ||
-               startsFloatLiteral(token);
+               startsFloatLiteral(token) ||
+               startsStringLiteral(token);
     }
 
 	private boolean startsFloatLiteral(Token token) {

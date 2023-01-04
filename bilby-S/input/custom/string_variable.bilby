@@ -1,0 +1,4 @@
+main {
+    imm s := "hello world!";
+    print s $n;
+}

@@ -28,6 +28,7 @@ import parseTree.nodeTypes.PrintStatementNode;
 import parseTree.nodeTypes.ProgramNode;
 import parseTree.nodeTypes.ReturnStatementNode;
 import parseTree.nodeTypes.SpaceNode;
+import parseTree.nodeTypes.StringConstantNode;
 import semanticAnalyzer.signatures.FunctionSignature;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
@@ -155,7 +156,16 @@ public class ASMCodeGenerator {
 			}	
 			else if(node.getType() == PrimitiveType.BOOLEAN) {
 				code.add(LoadC);
-			}	
+			}
+            else if(node.getType() == PrimitiveType.FLOAT) {
+                code.add(LoadF);
+            }
+            else if(node.getType() == PrimitiveType.CHAR) {
+                code.add(LoadC);
+            }
+            else if(node.getType() == PrimitiveType.STRING) {
+                code.add(LoadI);
+            }
 			else {
 				assert false : "node " + node;
 			}
@@ -342,6 +352,16 @@ public class ASMCodeGenerator {
 			if(type == PrimitiveType.BOOLEAN) {
 				return StoreC;
 			}
+            if(type == PrimitiveType.FLOAT) {
+                return StoreF;
+            }
+            if(type == PrimitiveType.CHAR) {
+                return StoreC;
+            }
+            if(type == PrimitiveType.STRING) {
+                return StoreI;
+            }
+
 			assert false: "Type " + type + " unimplemented in opcodeForStore()";
 			return null;
 		}
@@ -469,7 +489,7 @@ public class ASMCodeGenerator {
                 Macros.storeITo(code, RunTime.STACK_POINTER); // sp <= sp - size, [...]
                 Macros.loadIFrom(code, RunTime.STACK_POINTER); // [... sp]
                 code.append(removeValueCode(arguments.child(i))); // [... sp value]
-                code.add(storeCodeForType(argumentType)); // [...], mem[sp] <= value
+                code.add(opcodeForStore(argumentType)); // [...], mem[sp] <= value
                 sizeOfArguments += argumentSize;
             }
 
@@ -485,7 +505,7 @@ public class ASMCodeGenerator {
             if(returnType != PrimitiveType.VOID) {
                 // [... rv] <- mem[sp]
                 Macros.loadIFrom(code, RunTime.STACK_POINTER); // [... sp]
-                code.add(loadForType(returnType)); // [... rv]
+                code.add(opcodeForload(returnType)); // [... rv]
             } else {
                 code.add(PushI, 0); // [... 0]
             }
@@ -497,24 +517,23 @@ public class ASMCodeGenerator {
             Macros.storeITo(code, RunTime.STACK_POINTER); // sp <= sp + size, [... rv]
         }
 
-        private static ASMOpcode storeCodeForType(Type argumentType) {
-            if(argumentType == PrimitiveType.BOOLEAN) {
-                return StoreC;
-            }
-            if(argumentType == PrimitiveType.INTEGER) {
-                return StoreI;
-            }
-            assert false : "unimplemented type in storeCodeForType";
-            return null;
-        }
-
-        public ASMOpcode loadForType(Type returnType) {
+        public ASMOpcode opcodeForload(Type returnType) {
             if(returnType == PrimitiveType.BOOLEAN) {
                 return LoadC;
             }
             if(returnType == PrimitiveType.INTEGER) {
                 return LoadI;
             }
+            if(returnType == PrimitiveType.FLOAT) {
+                return LoadF;
+            }
+            if(returnType == PrimitiveType.CHAR) {
+                return LoadC;
+            }
+            if(returnType == PrimitiveType.STRING) {
+                return LoadI;
+            }
+
             assert false : "unimplemented type in loadForType";
             return null;
         }
@@ -544,6 +563,18 @@ public class ASMCodeGenerator {
         public void visit(FloatConstantNode node) {
             newValueCode(node);
             code.add(PushF, node.getValue());
+        }
+        public void visit(StringConstantNode node) {
+            newValueCode(node);
+            String value = node.getValue();
+            Labeller labeller = new Labeller("string-constant");
+            String label = labeller.newLabel(value);
+            code.add(DLabel, label);
+            code.add(DataI, 3); // record type
+            code.add(DataI, 9); // record status
+            code.add(DataI, value.length()); // record length
+            code.add(DataS, node.getValue());
+            code.add(PushD, label);
         }
 	}
 
