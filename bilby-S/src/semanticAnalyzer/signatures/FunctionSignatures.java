@@ -71,8 +71,8 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 		// for this to work, you should statically import PrimitiveType.*
 
 		new FunctionSignatures(Punctuator.ADD,
-		    new FunctionSignature(ASMOpcode.Add, INTEGER, INTEGER, INTEGER)
-		    // new FunctionSignature(ASMOpcode.FAdd, FLOAT, FLOAT, FLOAT)
+		    new FunctionSignature(ASMOpcode.Add, INTEGER, INTEGER, INTEGER),
+		    new FunctionSignature(ASMOpcode.FAdd, FLOAT, FLOAT, FLOAT)
 		);
 		
 		// First, we use the operator itself (in this case the Punctuator ADD) as the key.
@@ -96,10 +96,13 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 
         new FunctionSignatures(Punctuator.SUBTRACT,
             new FunctionSignature(ASMOpcode.Negate, INTEGER, INTEGER),
-            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, INTEGER)
+            new FunctionSignature(ASMOpcode.FNegate, FLOAT, FLOAT),
+            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, INTEGER),
+            new FunctionSignature(ASMOpcode.FSubtract, FLOAT, FLOAT, FLOAT)
         );
         new FunctionSignatures(Punctuator.MULTIPLY,
-            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, INTEGER)
+            new FunctionSignature(ASMOpcode.Multiply, INTEGER, INTEGER, INTEGER),
+            new FunctionSignature(ASMOpcode.FMultiply, FLOAT, FLOAT, FLOAT)
         );
         new FunctionSignatures(Punctuator.GREATER,
             new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, BOOLEAN)

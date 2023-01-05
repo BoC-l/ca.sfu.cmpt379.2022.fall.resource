@@ -2,12 +2,15 @@ package parseTree.nodeTypes;
 
 import parseTree.ParseNode;
 import parseTree.ParseNodeVisitor;
+import semanticAnalyzer.signatures.FunctionSignature;
 import lexicalAnalyzer.Lextant;
 import tokens.LextantToken;
 import tokens.Token;
 
 public class OperatorNode extends ParseNode {
-	public OperatorNode(Token token) {
+	private FunctionSignature signature;
+
+    public OperatorNode(Token token) {
 		super(token);
 		assert(token instanceof LextantToken);
 	}
@@ -46,5 +49,13 @@ public class OperatorNode extends ParseNode {
 		visitChildren(visitor);
 		visitor.visitLeave(this);
 	}
+
+    public void setSignature(FunctionSignature signature) {
+        this.signature = signature;
+    }
+
+    public FunctionSignature getSignature() {
+        return signature;
+    }
 }
 

@@ -372,7 +372,7 @@ public class Parser {
 	// comparisonExpression     -> additiveExpression [> additiveExpression]?
 	// additiveExpression       -> multiplicativeExpression [+ multiplicativeExpression]*  (left-assoc)
 	// multiplicativeExpression -> atomicExpression [MULT atomicExpression]*  (left-assoc)
-	// atomicExpression         -> unaryExpression | literal | functionInvocation
+	// atomicExpression         -> unaryExpression | literal | functionInvocation | parenthesizedExpression
 	// unaryExpression			-> UNARYOP atomicExpression
     // functionInvocation       -> identifier ( expressionList )
 	// literal                  -> intNumber | identifier | booleanConstant | charConstant | floatNumber
@@ -455,6 +455,9 @@ public class Parser {
 		if(!startsAtomicExpression(nowReading)) {
 			return syntaxErrorNode("atomic expression");
 		}
+        if(startsParenthesizedExpression(nowReading)) {
+            return parseParenthesizedExpression();
+        }
 		if(startsUnaryExpression(nowReading)) {
 			return parseUnaryExpression();
 		}
@@ -469,11 +472,20 @@ public class Parser {
         return literal;
 	}
 
+    private ParseNode parseParenthesizedExpression() {
+        expect(Punctuator.OPEN_PAREN);
+        ParseNode expression = parseExpression();
+        expect(Punctuator.CLOSE_PAREN);
+        return expression;
+    }
     private boolean startsAtomicExpression(Token token) {
-		return startsLiteral(token) || startsUnaryExpression(token);
+		return startsLiteral(token) || startsUnaryExpression(token) || startsParenthesizedExpression(token);
 	}
 
-	// unaryExpression			-> UNARYOP atomicExpression
+	private boolean startsParenthesizedExpression(Token token) {
+        return token.isLextant(null, Punctuator.OPEN_PAREN);
+    }
+    // unaryExpression			-> UNARYOP atomicExpression
 	private ParseNode parseUnaryExpression() {
 		if(!startsUnaryExpression(nowReading)) {
 			return syntaxErrorNode("unary expression");
@@ -481,11 +493,13 @@ public class Parser {
 		Token operatorToken = nowReading;
 		readToken();
 		ParseNode child = parseAtomicExpression();
-		
-		return OperatorNode.withChildren(operatorToken, child);
+		if (operatorToken.isLextant(Punctuator.ADD)) {
+            return child;
+        }
+        return OperatorNode.withChildren(operatorToken, child);
 	}
 	private boolean startsUnaryExpression(Token token) {
-		return token.isLextant(Punctuator.SUBTRACT);
+		return token.isLextant(Punctuator.SUBTRACT, Punctuator.ADD);
 	}
 	
 	// literal -> number | identifier | booleanConstant | charConstant | floatNumber | stringConstant

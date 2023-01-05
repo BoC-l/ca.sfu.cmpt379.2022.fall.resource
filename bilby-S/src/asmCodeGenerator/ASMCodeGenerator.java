@@ -447,19 +447,24 @@ public class ASMCodeGenerator {
 			code.add(opcode);							// type-dependent! (opcode is different for floats and for ints)
 		}
 		private ASMOpcode opcodeForOperator(OperatorNode node) {
-            Lextant lextant = node.getOperator();
-			assert(lextant instanceof Punctuator);
-			Punctuator punctuator = (Punctuator)lextant;
-            int nOperators = node.nChildren();
-			switch(punctuator) {
-			case ADD: 	   		return Add;				// type-dependent!
-			case SUBTRACT:		return nOperators == 1 ? Negate : Subtract; // (unary subtract only) type-dependent!
-			case MULTIPLY: 		return Multiply;		// type-dependent!
-			default:
-				assert false : "unimplemented operator in opcodeForOperator";
-			}
+            FunctionSignature signature = node.getSignature();
+            if(signature != null) {
+                return opcodeForOperator(signature);
+            }
+            assert false : "unimplemented operator in opcodeForOperator";
 			return null;
 		}
+
+        private ASMOpcode opcodeForOperator(FunctionSignature signature) {
+            Object variant = signature.getVariant();
+            if (variant instanceof ASMOpcode) {
+                return (ASMOpcode) variant;
+            }
+            else {
+                assert false : "unimplemented operator in opcodeForOperator";
+                return null;
+            }
+        }
 
         // identifier ( expression-list )
         @Override
