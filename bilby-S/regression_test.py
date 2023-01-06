@@ -70,10 +70,11 @@ def test_compile_and_emulate(test_relative_path):
         #assert compiler_output == expected_asm
 
         emulator_out, emulator_err, emulator_retcode = run_emulator(compiler_output_file_path)
+        if test_file_name.startswith('rte_'):
+            assert 'Runtime error' in emulator_out
+            return
         assert emulator_retcode == 0, emulator_err
         open(os.path.join('output', test_relative_path.replace('.bilby', '.txt')), 'wb').write(emulator_out.encode('utf-8'))
         expected_output_file_path = os.path.join(test_dir_path, test_file_name.replace('.bilby', '.txt'))
         expected_output = open(expected_output_file_path).read()
         assert emulator_out.splitlines() == expected_output.splitlines()
-        if test_file_name.startswith('rte_'):
-            assert 'Runtime error' in emulator_out

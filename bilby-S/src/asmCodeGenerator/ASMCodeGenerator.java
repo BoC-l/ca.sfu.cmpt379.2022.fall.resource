@@ -442,6 +442,22 @@ public class ASMCodeGenerator {
 			
 			code.append(arg1);
 			code.append(arg2);
+            // handle division by zero
+            if(node.getOperator() == Punctuator.DIVIDE) {
+                Type divisorType = node.child(1).getType();
+                assert divisorType == PrimitiveType.INTEGER || divisorType == PrimitiveType.FLOAT;
+                Labeller labeller = new Labeller("divide");
+                String startLabel = labeller.newLabel("start");
+                String zeroLabel = labeller.newLabel("zero");
+                String joinLabel = labeller.newLabel("join");
+                code.add(Label, startLabel);
+                code.add(Duplicate);
+                code.add(divisorType == PrimitiveType.FLOAT ? JumpFZero : JumpFalse, zeroLabel);
+                code.add(Jump, joinLabel);
+                code.add(Label, zeroLabel);
+                code.add(Jump, divisorType == PrimitiveType.FLOAT ? RunTime.FLOAT_DIVIDE_BY_ZERO_RUNTIME_ERROR : RunTime.INTEGER_DIVIDE_BY_ZERO_RUNTIME_ERROR);
+                code.add(Label, joinLabel);
+            }
 			
 			ASMOpcode opcode = opcodeForOperator(node);
 			code.add(opcode);							// type-dependent! (opcode is different for floats and for ints)
