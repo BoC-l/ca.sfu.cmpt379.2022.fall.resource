@@ -112,7 +112,11 @@ public class LexicalAnalyzer extends ScannerImp {
             buffer.append(c.getCharacter());
             return CharacterToken.make(ch, buffer.toString());
         }
-        while (!c.isWhitespace()) {
+        buffer.append(c.getCharacter());
+        assert !isEndOfInput(c);
+        c = input.next();
+        // TODO: REFACTOR THIS
+        while (!c.isWhitespace() && !isEndOfInput(c) && !c.isChar(';')) {
             buffer.append(c.getCharacter());
             c = input.next();
         }

@@ -4,6 +4,7 @@ import parseTree.nodeTypes.AssignmentStatementNode;
 import parseTree.nodeTypes.BlockStatementNode;
 import parseTree.nodeTypes.BooleanConstantNode;
 import parseTree.nodeTypes.CallStatementNode;
+import parseTree.nodeTypes.CastNode;
 import parseTree.nodeTypes.CharConstantNode;
 import parseTree.nodeTypes.DeclarationNode;
 import parseTree.nodeTypes.ErrorNode;
@@ -23,6 +24,7 @@ import parseTree.nodeTypes.ProgramNode;
 import parseTree.nodeTypes.ReturnStatementNode;
 import parseTree.nodeTypes.SpaceNode;
 import parseTree.nodeTypes.StringConstantNode;
+import parseTree.nodeTypes.TabNode;
 import parseTree.nodeTypes.TypeNode;
 
 // Visitor pattern with pre- and post-order visits
@@ -75,6 +77,9 @@ public interface ParseNodeVisitor {
     void visitEnter(AssignmentStatementNode node);
     void visitLeave(AssignmentStatementNode node);
 
+    void visitEnter(CastNode node);
+    void visitLeave(CastNode node);
+
 	// leaf nodes: visitLeaf only
 	void visit(BooleanConstantNode node);
 	void visit(ErrorNode node);
@@ -82,6 +87,7 @@ public interface ParseNodeVisitor {
 	void visit(IntegerConstantNode node);
 	void visit(NewlineNode node);
 	void visit(SpaceNode node);
+    void visit(TabNode node);
     void visit(TypeNode node);
     void visit(CharConstantNode node);
     void visit(FloatConstantNode node);
@@ -213,6 +219,14 @@ public interface ParseNodeVisitor {
         public void visitLeave(AssignmentStatementNode node) {
             defaultVisitLeave(node);
         }
+        @Override
+        public void visitEnter(CastNode node) {
+            defaultVisitEnter(node);
+        }
+        @Override
+        public void visitLeave(CastNode node) {
+            defaultVisitLeave(node);
+        }
 
 		public void visit(BooleanConstantNode node) {
 			defaultVisitForLeaf(node);
@@ -232,6 +246,10 @@ public interface ParseNodeVisitor {
 		public void visit(SpaceNode node) {
 			defaultVisitForLeaf(node);
 		}
+        @Override
+        public void visit(TabNode node) {
+            defaultVisitForLeaf(node);
+        }
         @Override
         public void visit(TypeNode node) {
             defaultVisitForLeaf(node);

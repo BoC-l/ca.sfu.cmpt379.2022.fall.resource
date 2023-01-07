@@ -13,6 +13,7 @@ import parseTree.nodeTypes.AssignmentStatementNode;
 import parseTree.nodeTypes.BlockStatementNode;
 import parseTree.nodeTypes.BooleanConstantNode;
 import parseTree.nodeTypes.CallStatementNode;
+import parseTree.nodeTypes.CastNode;
 import parseTree.nodeTypes.CharConstantNode;
 import parseTree.nodeTypes.DeclarationNode;
 import parseTree.nodeTypes.ExpressionListNode;
@@ -29,6 +30,7 @@ import parseTree.nodeTypes.ProgramNode;
 import parseTree.nodeTypes.ReturnStatementNode;
 import parseTree.nodeTypes.SpaceNode;
 import parseTree.nodeTypes.StringConstantNode;
+import parseTree.nodeTypes.TabNode;
 import semanticAnalyzer.signatures.FunctionSignature;
 import semanticAnalyzer.types.PrimitiveType;
 import semanticAnalyzer.types.Type;
@@ -295,6 +297,11 @@ public class ASMCodeGenerator {
 			code.add(PushD, RunTime.SPACE_PRINT_FORMAT);
 			code.add(Printf);
 		}
+        public void visit(TabNode node) {
+            newVoidCode(node);
+            code.add(PushD, RunTime.TAB_PRINT_FORMAT);
+            code.add(Printf);
+        }
 		
         public void visitLeave(CallStatementNode node) {
             newVoidCode(node);
@@ -381,51 +388,12 @@ public class ASMCodeGenerator {
 		public void visitLeave(OperatorNode node) {
 			Lextant operator = node.getOperator();
 			
-			if(operator == Punctuator.SUBTRACT && node.nChildren() == 1) {
+			if ((operator == Punctuator.ADD || operator == Punctuator.SUBTRACT)&& node.nChildren() == 1) {
 				visitUnaryOperatorNode(node);
-			}
-			else if(operator == Punctuator.GREATER) {
-				visitComparisonOperatorNode(node, operator);
-			}
-			else {
-				visitNormalBinaryOperatorNode(node);
-			}
-		}
-		private void visitComparisonOperatorNode(OperatorNode node,
-				Lextant operator) {
-
-			ASMCodeFragment arg1 = removeValueCode(node.child(0));
-			ASMCodeFragment arg2 = removeValueCode(node.child(1));
-			
-			Labeller labeller = new Labeller("compare");
-			
-			String startLabel = labeller.newLabel("arg1");
-			String arg2Label  = labeller.newLabel("arg2");
-			String subLabel   = labeller.newLabel("sub");
-			String trueLabel  = labeller.newLabel("true");
-			String falseLabel = labeller.newLabel("false");
-			String joinLabel  = labeller.newLabel("join");
-			
-			newValueCode(node);
-			code.add(Label, startLabel);
-			code.append(arg1);
-			code.add(Label, arg2Label);
-			code.append(arg2);
-			code.add(Label, subLabel);
-			code.add(Subtract);
-			
-			code.add(JumpPos, trueLabel);
-			code.add(Jump, falseLabel);
-
-			code.add(Label, trueLabel);
-			code.add(PushI, 1);
-			code.add(Jump, joinLabel);
-			code.add(Label, falseLabel);
-			code.add(PushI, 0);
-			code.add(Jump, joinLabel);
-			code.add(Label, joinLabel);
-
-		}		
+			} else {
+                visitNormalBinaryOperatorNode(node);
+            }
+        }
 		private void visitUnaryOperatorNode(OperatorNode node) {
 			newValueCode(node);
 			ASMCodeFragment arg1 = removeValueCode(node.child(0));
@@ -433,7 +401,7 @@ public class ASMCodeGenerator {
 			code.append(arg1);
 			
 			ASMOpcode opcode = opcodeForOperator(node);
-			code.add(opcode);							// type-dependent! (opcode is different for floats and for ints)
+			code.add(opcode);
 		}
 		private void visitNormalBinaryOperatorNode(OperatorNode node) {
 			newValueCode(node);
@@ -458,10 +426,96 @@ public class ASMCodeGenerator {
                 code.add(Jump, divisorType == PrimitiveType.FLOAT ? RunTime.FLOAT_DIVIDE_BY_ZERO_RUNTIME_ERROR : RunTime.INTEGER_DIVIDE_BY_ZERO_RUNTIME_ERROR);
                 code.add(Label, joinLabel);
             }
-			
-			ASMOpcode opcode = opcodeForOperator(node);
-			code.add(opcode);							// type-dependent! (opcode is different for floats and for ints)
+
+            ASMOpcode opcode = opcodeForOperator(node);
+            code.add(opcode);
+
+            if (node.getOperator() == Punctuator.EQUAL) {
+                Type type = node.child(1).getType();
+                Labeller labeller = new Labeller("equal");
+                String trueLabel = labeller.newLabel("true");
+                String falseLabel = labeller.newLabel("false");
+                String joinLabel = labeller.newLabel("join");
+                code.add(type == PrimitiveType.FLOAT ? JumpFZero : JumpFalse, trueLabel);
+                code.add(Label, falseLabel);
+                code.add(PushI, 0);
+                code.add(Jump, joinLabel);
+                code.add(Label, trueLabel);
+                code.add(PushI, 1);
+                code.add(Label, joinLabel);
+            }
+            if (node.getOperator() == Punctuator.NOTEQUAL) {
+                Type type = node.child(1).getType();
+                Labeller labeller = new Labeller("notequal");
+                String trueLabel = labeller.newLabel("true");
+                String falseLabel = labeller.newLabel("false");
+                String joinLabel = labeller.newLabel("join");
+                code.add(type == PrimitiveType.FLOAT ? JumpFZero : JumpFalse, falseLabel);
+                code.add(Label, trueLabel);
+                code.add(PushI, 1);
+                code.add(Jump, joinLabel);
+                code.add(Label, falseLabel);
+                code.add(PushI, 0);
+                code.add(Label, joinLabel);
+            }
+            if (node.getOperator() == Punctuator.LESS) {
+                Type type = node.child(1).getType();
+                Labeller labeller = new Labeller("less");
+                String trueLabel = labeller.newLabel("true");
+                String falseLabel = labeller.newLabel("false");
+                String joinLabel = labeller.newLabel("join");
+                code.add(type == PrimitiveType.FLOAT ? JumpFNeg : JumpNeg, trueLabel);
+                code.add(Label, falseLabel);
+                code.add(PushI, 0);
+                code.add(Jump, joinLabel);
+                code.add(Label, trueLabel);
+                code.add(PushI, 1);
+                code.add(Label, joinLabel);
+            }
+            if (node.getOperator() == Punctuator.GREATER) {
+                Type type = node.child(1).getType();
+                Labeller labeller = new Labeller("greater");
+                String trueLabel = labeller.newLabel("true");
+                String falseLabel = labeller.newLabel("false");
+                String joinLabel = labeller.newLabel("join");
+                code.add(type == PrimitiveType.FLOAT ? JumpFPos : JumpPos, trueLabel);
+                code.add(Label, falseLabel);
+                code.add(PushI, 0);
+                code.add(Jump, joinLabel);
+                code.add(Label, trueLabel);
+                code.add(PushI, 1);
+                code.add(Label, joinLabel);
+            }
+            if (node.getOperator() == Punctuator.LESSEQUAL) {
+                Type type = node.child(1).getType();
+                Labeller labeller = new Labeller("lessequal");
+                String trueLabel = labeller.newLabel("true");
+                String falseLabel = labeller.newLabel("false");
+                String joinLabel = labeller.newLabel("join");
+                code.add(type == PrimitiveType.FLOAT ? JumpFPos : JumpPos, falseLabel);
+                code.add(Label, trueLabel);
+                code.add(PushI, 1);
+                code.add(Jump, joinLabel);
+                code.add(Label, falseLabel);
+                code.add(PushI, 0);
+                code.add(Label, joinLabel);
+            }
+            if (node.getOperator() == Punctuator.GREATEREQUAL) {
+                Type type = node.child(1).getType();
+                Labeller labeller = new Labeller("greaterequal");
+                String trueLabel = labeller.newLabel("true");
+                String falseLabel = labeller.newLabel("false");
+                String joinLabel = labeller.newLabel("join");
+                code.add(type == PrimitiveType.FLOAT ? JumpFNeg : JumpNeg, falseLabel);
+                code.add(Label, trueLabel);
+                code.add(PushI, 1);
+                code.add(Jump, joinLabel);
+                code.add(Label, falseLabel);
+                code.add(PushI, 0);
+                code.add(Label, joinLabel);
+            }
 		}
+
 		private ASMOpcode opcodeForOperator(OperatorNode node) {
             FunctionSignature signature = node.getSignature();
             if(signature != null) {
@@ -559,7 +613,37 @@ public class ASMCodeGenerator {
             return null;
         }
 
-
+        @Override
+        public void visitLeave(CastNode node) {
+            newValueCode(node);
+            Type fromType = node.child(0).getType();
+            Type toType = node.getType();
+            code.append(removeValueCode(node.child(0)));
+            if(fromType == toType) {
+                return;
+            }
+            if((fromType == PrimitiveType.INTEGER || fromType == PrimitiveType.CHAR) && toType == PrimitiveType.FLOAT) {
+                code.add(ConvertF);
+            }
+            if(fromType == PrimitiveType.FLOAT && (toType == PrimitiveType.INTEGER || toType == PrimitiveType.CHAR)) {
+                code.add(ConvertI);
+            }
+            if(toType == PrimitiveType.BOOLEAN) {
+                Labeller labeller = new Labeller("cast");
+                String falseLabel = labeller.newLabel("false");
+                String joinLabel = labeller.newLabel("join");
+                code.add(fromType == PrimitiveType.FLOAT ? JumpFZero : JumpFalse, falseLabel);
+                code.add(PushI, 1);
+                code.add(Jump, joinLabel);
+                code.add(Label, falseLabel);
+                code.add(PushI, 0);
+                code.add(Label, joinLabel);
+            }
+            if(toType == PrimitiveType.CHAR) {
+                code.add(PushI, 0x7f);
+                code.add(And);
+            }
+        }
         ///////////////////////////////////////////////////////////////////////////
 		// leaf nodes (ErrorNode not necessary)
 		public void visit(BooleanConstantNode node) {

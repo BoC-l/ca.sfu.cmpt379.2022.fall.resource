@@ -12,6 +12,7 @@ import parseTree.ParseNodeVisitor;
 import parseTree.nodeTypes.AssignmentStatementNode;
 import parseTree.nodeTypes.BlockStatementNode;
 import parseTree.nodeTypes.BooleanConstantNode;
+import parseTree.nodeTypes.CastNode;
 import parseTree.nodeTypes.CharConstantNode;
 import parseTree.nodeTypes.DeclarationNode;
 import parseTree.nodeTypes.ErrorNode;
@@ -84,7 +85,10 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
 		
 		Type declarationType = initializer.getType();
 		node.setType(declarationType);
-		
+		if (declarationType == PrimitiveType.ERROR) {
+            logError("Cannot declare variable of type ERROR");
+            return;
+        }
 		identifier.setType(declarationType);
         identifier.setMutable(node.getToken().isLextant(Keyword.MUT));
 		SemanticAnalyzer.addBinding(identifier, declarationType);
@@ -197,6 +201,39 @@ class SemanticAnalysisVisitor extends ParseNodeVisitor.Default {
                 logError("return type does not match function type");
             }
         }
+    }
+    @Override
+    public void visitLeave(CastNode node) {
+        ParseNode expression = node.child(0);
+        TypeNode typeNode = (TypeNode) node.child(1);
+        Type targetType = typeNode.getType();
+        Type expressionType = expression.getType();
+        if (targetType == PrimitiveType.ERROR || expressionType == PrimitiveType.ERROR) {
+            node.setType(PrimitiveType.ERROR);
+            return;
+        }
+        if (expressionType == targetType) {
+            node.setType(targetType);
+            return;
+        }
+        if (expressionType == PrimitiveType.BOOLEAN && targetType != PrimitiveType.BOOLEAN) {
+            logError("cannot cast boolean to non-boolean type");
+            node.setType(PrimitiveType.ERROR);
+            return;
+        }
+        if (
+            (expressionType == PrimitiveType.CHAR && targetType == PrimitiveType.INTEGER) ||
+            (expressionType == PrimitiveType.INTEGER && targetType == PrimitiveType.CHAR) ||
+            (expressionType == PrimitiveType.INTEGER && targetType == PrimitiveType.FLOAT) ||
+            (expressionType == PrimitiveType.FLOAT && targetType == PrimitiveType.INTEGER) ||
+            (expressionType == PrimitiveType.INTEGER && targetType == PrimitiveType.BOOLEAN) ||
+            (expressionType == PrimitiveType.CHAR && targetType == PrimitiveType.BOOLEAN)
+        ) {
+            node.setType(targetType);
+            return;
+        }
+        logError("cannot cast " + expressionType + " to " + targetType);
+        node.setType(PrimitiveType.ERROR);
     }
 	///////////////////////////////////////////////////////////////////////////
 	// simple leaf nodes

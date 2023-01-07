@@ -71,6 +71,8 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
 		// for this to work, you should statically import PrimitiveType.*
 
 		new FunctionSignatures(Punctuator.ADD,
+            new FunctionSignature(ASMOpcode.Nop, INTEGER, INTEGER),
+            new FunctionSignature(ASMOpcode.Nop, FLOAT, FLOAT),
 		    new FunctionSignature(ASMOpcode.Add, INTEGER, INTEGER, INTEGER),
 		    new FunctionSignature(ASMOpcode.FAdd, FLOAT, FLOAT, FLOAT)
 		);
@@ -105,11 +107,42 @@ public class FunctionSignatures extends ArrayList<FunctionSignature> {
             new FunctionSignature(ASMOpcode.FMultiply, FLOAT, FLOAT, FLOAT)
         );
         new FunctionSignatures(Punctuator.DIVIDE,
-        new FunctionSignature(ASMOpcode.Divide, INTEGER, INTEGER, INTEGER),
-        new FunctionSignature(ASMOpcode.FDivide, FLOAT, FLOAT, FLOAT)
-    );
+            new FunctionSignature(ASMOpcode.Divide, INTEGER, INTEGER, INTEGER),
+            new FunctionSignature(ASMOpcode.FDivide, FLOAT, FLOAT, FLOAT)
+        );
         new FunctionSignatures(Punctuator.GREATER,
-            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, BOOLEAN)
+            new FunctionSignature(ASMOpcode.Subtract, CHAR, CHAR, BOOLEAN),
+            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, BOOLEAN),
+            new FunctionSignature(ASMOpcode.FSubtract, FLOAT, FLOAT, BOOLEAN)
+        );
+        new FunctionSignatures(Punctuator.LESS,
+            new FunctionSignature(ASMOpcode.Subtract, CHAR, CHAR, BOOLEAN),
+            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, BOOLEAN),
+            new FunctionSignature(ASMOpcode.FSubtract, FLOAT, FLOAT, BOOLEAN)
+        );
+        new FunctionSignatures(Punctuator.GREATEREQUAL,
+            new FunctionSignature(ASMOpcode.Subtract, CHAR, CHAR, BOOLEAN),
+            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, BOOLEAN),
+            new FunctionSignature(ASMOpcode.FSubtract, FLOAT, FLOAT, BOOLEAN)
+        );
+        new FunctionSignatures(Punctuator.LESSEQUAL,
+            new FunctionSignature(ASMOpcode.Subtract, CHAR, CHAR, BOOLEAN),
+            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, BOOLEAN),
+            new FunctionSignature(ASMOpcode.FSubtract, FLOAT, FLOAT, BOOLEAN)
+        );
+        new FunctionSignatures(Punctuator.EQUAL,
+            new FunctionSignature(ASMOpcode.Subtract, BOOLEAN, BOOLEAN, BOOLEAN),
+            new FunctionSignature(ASMOpcode.Subtract, CHAR, CHAR, BOOLEAN),
+            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, BOOLEAN),
+            new FunctionSignature(ASMOpcode.FSubtract, FLOAT, FLOAT, BOOLEAN),
+            new FunctionSignature(ASMOpcode.Subtract, STRING, STRING, BOOLEAN)
+        );
+        new FunctionSignatures(Punctuator.NOTEQUAL,
+            new FunctionSignature(ASMOpcode.Subtract, BOOLEAN, BOOLEAN, BOOLEAN),
+            new FunctionSignature(ASMOpcode.Subtract, CHAR, CHAR, BOOLEAN),
+            new FunctionSignature(ASMOpcode.Subtract, INTEGER, INTEGER, BOOLEAN),
+            new FunctionSignature(ASMOpcode.FSubtract, FLOAT, FLOAT, BOOLEAN),
+            new FunctionSignature(ASMOpcode.Subtract, STRING, STRING, BOOLEAN)
         );
 	}
 

@@ -1,5 +1,7 @@
 package lexicalAnalyzer;
 
+import javax.print.DocFlavor.CHAR_ARRAY;
+
 import inputHandler.TextLocation;
 import tokens.LextantToken;
 import tokens.Token;
@@ -13,13 +15,17 @@ public enum Keyword implements Lextant {
 	FALSE("false"),
 	MAIN("main"),
     INT("int"),
+    CHAR("char"),
+    FLOAT("float"),
     BOOL("bool"),
+    STRING("string"),
     VOID("void"),
     FUNC("func"),
     CALL("call"),
     IF("if"),
     ELSE("else"),
     RETURN("return"),
+    AS("as"),
 	NULL_KEYWORD("");
 
 	private String lexeme;

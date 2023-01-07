@@ -61,6 +61,15 @@ public class FirstPassVisitor extends ParseNodeVisitor.Default {
             case INT:
                 node.setType(PrimitiveType.INTEGER);
                 break;
+            case FLOAT:
+                node.setType(PrimitiveType.FLOAT);
+                break;
+            case CHAR:
+                node.setType(PrimitiveType.CHAR);
+                break;
+            case STRING:
+                node.setType(PrimitiveType.STRING);
+                break;
             case VOID:
                 node.setType(PrimitiveType.VOID);
                 break;
