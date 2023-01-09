@@ -641,7 +641,7 @@ public class ASMCodeGenerator {
             }
             if(toType == PrimitiveType.CHAR) {
                 code.add(PushI, 0x7f);
-                code.add(And);
+                code.add(BTAnd);
             }
         }
         ///////////////////////////////////////////////////////////////////////////

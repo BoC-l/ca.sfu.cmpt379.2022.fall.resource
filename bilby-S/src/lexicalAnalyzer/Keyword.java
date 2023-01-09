@@ -1,7 +1,5 @@
 package lexicalAnalyzer;
 
-import javax.print.DocFlavor.CHAR_ARRAY;
-
 import inputHandler.TextLocation;
 import tokens.LextantToken;
 import tokens.Token;

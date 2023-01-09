@@ -1,0 +1,5 @@
+main {
+    imm c:= [ 97 as char ];
+    print [c as int] $n;
+  print c >= #D $n;
+}
